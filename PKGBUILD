@@ -11,10 +11,12 @@ _pkgbasever=${pkgver/rc/-rc}
 
 source=(https://dl.winehq.org/wine/source/9.x/$pkgname-$_pkgbasever.tar.xz{,.sign}
         30-win32-aliases.conf
+        writecopy.patch
         wine-binfmt.conf)
 sha512sums=('5f2994d20b8c7635125b38b6a4d89db4b71791f096276fa93e36dc6951c47c25b8a3354f0be0931799ac83c54f048e34693b56512cc446b93c74344b1a458187'
             'SKIP'
             '6e54ece7ec7022b3c9d94ad64bdf1017338da16c618966e8baf398e6f18f80f7b0576edf1d1da47ed77b96d577e4cbb2bb0156b0b11c183a0accf22654b0a2bb'
+            'SKIP'
             'bdde7ae015d8a98ba55e84b86dc05aca1d4f8de85be7e4bd6187054bfe4ac83b5a20538945b63fb073caab78022141e9545685e4e3698c97ff173cf30859e285')
 validpgpkeys=(5AC1A08B03BD7A313E0A955AF5E6E9EEB9461DD7
               DA23579A74D4AD9AF9D3F945CEFAC8EAAF17519D)
@@ -93,6 +95,7 @@ install=wine.install
 build() {
   # Allow ccache to work
   mv $pkgname-$_pkgbasever $pkgname
+  patch -Np1 -i $srcdir/writecopy.patch -d "$pkgname"
 
   # Doesn't compile without remove these flags as of 4.10
   export CFLAGS="$CFLAGS -ffat-lto-objects"
