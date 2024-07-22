@@ -1,0 +1,61 @@
+name: Build wine
+
+on:
+  push:
+    branches: patch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:multilib-devel
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Update
+        run: |
+          echo -e 'MAKEFLAGS="-j4"' >> /etc/makepkg.conf
+          echo -e 'builder ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
+          useradd -m builder
+          pacman -Sy
+
+      - name: Build
+        run: |
+          chown builder . -R
+          sudo -u builder -- gpg --recv-keys CEFAC8EAAF17519D
+          sudo -u builder -- makepkg -cfs --noconfirm
+          pkgs=( $(makepkg --packagelist) )
+          echo ::set-env name=ARTIFACT_WINE::${pkgs[0]}
+          echo ::set-env name=ARTIFACT_WINE_DEBUG::${pkgs[1]}
+
+      - name: Release
+        uses: actions/create-release@v1
+        id: create_release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          draft: false
+          prerelease: false
+          release_name: Release ${{ github.ref }}
+          tag_name: ${{ github.ref }}
+
+      - name: Upload Wine
+        uses: actions/upload-release-asset@v1.0.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ env.ARTIFACT_WINE }}
+          asset_name: wine
+          asset_content_type: application/zstd
+
+      - name: Upload Wine Debug
+        uses: actions/upload-release-asset@v1.0.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ env.ARTIFACT_WINE_DEBUG }}
+          asset_name: wine-debug
+          asset_content_type: application/zstd
