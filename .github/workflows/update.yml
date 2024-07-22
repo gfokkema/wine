@@ -1,0 +1,23 @@
+name: Update branch `patch` with latest changes.
+
+on:
+  push:
+    branches: main
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Set Git config
+        run: |
+          git config --local user.email "actions@github.com"
+          git config --local user.name "Github Actions"
+      - name: Update patch branch
+        run: |
+          git fetch
+          git checkout patch
+          git rebase main
+          git push -f
