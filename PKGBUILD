@@ -5,7 +5,7 @@
 
 pkgname=wine
 pkgver=10.8
-pkgrel=1
+pkgrel=2
 
 _pkgbasever=${pkgver/rc/-rc}
 
@@ -25,64 +25,66 @@ options=(staticlibs !lto)
 license=(LGPL-2.1-or-later)
 depends=(
   desktop-file-utils
-  fontconfig      lib32-fontconfig
-  freetype2       lib32-freetype2
-  gcc-libs        lib32-gcc-libs
-  gettext         lib32-gettext
-  libpcap         lib32-libpcap
-  libunwind       lib32-libunwind
-  libxcursor      lib32-libxcursor
-  libxkbcommon    lib32-libxkbcommon
-  libxi           lib32-libxi
-  libxrandr       lib32-libxrandr
-  wayland         lib32-wayland
+  fontconfig
+  freetype2
+  gcc-libs
+  gettext
+  libpcap
+  libunwind
+  libxcursor
+  libxkbcommon
+  libxi
+  libxrandr
+  wayland
 )
 makedepends=(autoconf bison perl flex mingw-w64-gcc
   git
-  alsa-lib              lib32-alsa-lib
-  gnutls                lib32-gnutls
-  gst-plugins-base-libs lib32-gst-plugins-base-libs
-  libcups               lib32-libcups
+  alsa-lib
+  ffmpeg
+  gnutls
+  gst-plugins-base-libs
+  libcups
   libgphoto2
-  libpulse              lib32-libpulse
-  libxcomposite         lib32-libxcomposite
-  libxinerama           lib32-libxinerama
-  libxxf86vm            lib32-libxxf86vm
-  mesa                  lib32-mesa
-  mesa-libgl            lib32-mesa-libgl
+  libpulse
+  libxcomposite
+  libxinerama
+  libxxf86vm
+  mesa
+  mesa-libgl
   opencl-headers
-  opencl-icd-loader     lib32-opencl-icd-loader
-  pcsclite              lib32-pcsclite
+  opencl-icd-loader
+  pcsclite
+  python
   samba
   sane
-  sdl2                  lib32-sdl2
+  sdl2
   unixodbc
-  v4l-utils             lib32-v4l-utils
+  v4l-utils
   vulkan-headers
-  vulkan-icd-loader     lib32-vulkan-icd-loader
+  vulkan-icd-loader
 )
 optdepends=(
-  alsa-lib              lib32-alsa-lib
-  alsa-plugins          lib32-alsa-plugins
-  cups                  lib32-libcups
+  alsa-lib
+  alsa-plugins
+  cups
   dosbox
-  gnutls                lib32-gnutls
+  gnutls
   gst-plugins-bad
-  gst-plugins-base      lib32-gst-plugins-base
-  gst-plugins-base-libs lib32-gst-plugins-base-libs
-  gst-plugins-good      lib32-gst-plugins-good
+  gst-plugins-base
+  gst-plugins-base-libs
+  gst-plugins-good
   gst-plugins-ugly
   libgphoto2
-  libpulse              lib32-libpulse
-  libxcomposite         lib32-libxcomposite
-  libxinerama           lib32-libxinerama
-  opencl-icd-loader     lib32-opencl-icd-loader
-  pcsclite              lib32-pcsclite
+  libpulse
+  libxcomposite
+  libxinerama
+  opencl-icd-loader
+  pcsclite
   samba
   sane
-  sdl2                  lib32-sdl2
+  sdl2
   unixodbc
-  v4l-utils             lib32-v4l-utils
+  v4l-utils
   wine-gecko
   wine-mono
 )
@@ -91,8 +93,8 @@ install=wine.install
 
 prepare() {
   # Get rid of old build dirs
-  rm -rf $pkgname-{32,64}-build
-  mkdir $pkgname-{32,64}-build
+  rm -rf $pkgname-64-build
+  mkdir $pkgname-64-build
 
   cd wine
 }
@@ -114,31 +116,13 @@ build() {
     --with-x \
     --with-wayland \
     --with-gstreamer \
-    --enable-win64
-
-  make
-
-  echo "Building Wine-32..."
-  export PKG_CONFIG_PATH="/usr/lib32/pkgconfig"
-  cd "$srcdir/$pkgname-32-build"
-  ../wine/configure \
-    --prefix=/usr \
-    --libdir=/usr/lib \
-    --with-x \
-    --with-wayland \
-    --with-gstreamer \
-    --with-wine64="$srcdir/$pkgname-64-build"
+    --with-freetype \
+    --enable-archs=x86_64,i386
 
   make
 }
 
 package() {
-  echo "Packaging Wine-32..."
-  cd "$srcdir/$pkgname-32-build"
-  make prefix="$pkgdir/usr" \
-    libdir="$pkgdir/usr/lib" \
-    dlldir="$pkgdir/usr/lib/wine" install
-
   echo "Packaging Wine-64..."
   cd "$srcdir/$pkgname-64-build"
   make prefix="$pkgdir/usr" \
