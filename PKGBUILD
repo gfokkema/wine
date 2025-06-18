@@ -22,7 +22,7 @@ validpgpkeys=(5AC1A08B03BD7A313E0A955AF5E6E9EEB9461DD7
 pkgdesc="A compatibility layer for running Windows programs"
 url="https://www.winehq.org"
 arch=(x86_64)
-options=(staticlibs !lto)
+options=(!lto)
 license=(LGPL-2.1-or-later)
 depends=(
   desktop-file-utils
@@ -38,10 +38,10 @@ depends=(
   libxrandr
   wayland
 )
-makedepends=(autoconf bison perl flex mingw-w64-gcc
-  git
+makedepends=(
   alsa-lib
   ffmpeg
+  git
   gnutls
   gst-plugins-base-libs
   libcups
@@ -51,11 +51,11 @@ makedepends=(autoconf bison perl flex mingw-w64-gcc
   libxinerama
   libxxf86vm
   mesa
-  mesa-libgl
+  mingw-w64-gcc
   opencl-headers
   opencl-icd-loader
   pcsclite
-  python
+  perl
   samba
   sane
   sdl2
@@ -69,6 +69,7 @@ optdepends=(
   alsa-plugins
   cups
   dosbox
+  ffmpeg
   gnutls
   gst-plugins-bad
   gst-plugins-base
@@ -89,42 +90,31 @@ optdepends=(
   wine-gecko
   wine-mono
 )
-makedepends=(${makedepends[@]} ${depends[@]})
 install=wine.install
 
 prepare() {
   # Get rid of old build dirs
   rm -rf $pkgname-64-build
   mkdir $pkgname-64-build
-
-  cd wine
 }
 
 build() {
-  # Doesn't compile without remove these flags as of 4.10
-  export CFLAGS="$CFLAGS -ffat-lto-objects"
-
   # Apply flags for cross-compilation
   export CROSSCFLAGS="-O2 -pipe -g"
   export CROSSCXXFLAGS="-O2 -pipe -g"
   export CROSSLDFLAGS="-Wl,-O1"
 
-  echo "Building Wine-64..."
   cd "$srcdir/$pkgname-64-build"
   ../wine/configure \
     --prefix=/usr \
     --libdir=/usr/lib \
-    --with-x \
-    --with-wayland \
-    --with-gstreamer \
-    --with-freetype \
+    --disable-tests \
     --enable-archs=x86_64,i386
 
   make
 }
 
 package() {
-  echo "Packaging Wine-64..."
   cd "$srcdir/$pkgname-64-build"
   make prefix="$pkgdir/usr" \
     libdir="$pkgdir/usr/lib" \
